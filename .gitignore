@@ -1,0 +1,38 @@
+# === ESP-IDF (C Project) ===
+/esp32/*/build/
+/esp32/*/sdkconfig
+/esp32/*/sdkconfig.old
+/esp32/*/.pio/
+/esp32/*/.vscode/
+*.pyc
+*.log
+
+# Compiled object files, binaries, and ELF
+*.o
+*.elf
+*.bin
+*.map
+
+# IDF Python environment
+.python_env/
+.env/
+*.env
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# === General ===
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# === Python Server ===
+/server/__pycache__/
+/server/*.pyc
+/server/venv/
+/server/.env
