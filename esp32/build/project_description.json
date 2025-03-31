@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "esp32-C",
-    "project_version":    "068af6c-dirty",
+    "project_version":    "23a4430-dirty",
     "project_path":       "/home/vahid/ESP-IDF/esp32-C/esp32",
     "idf_path":           "/home/vahid/ESP-IDF/esp-idf",
     "build_dir":          "/home/vahid/ESP-IDF/esp32-C/esp32/build",
@@ -1195,8 +1195,8 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/vahid/ESP-IDF/esp32-C/esp32/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/vahid/ESP-IDF/esp32-C/esp32/main/esp32-C.c" ],
-            "include_dirs": [ "." ]
+            "sources": [ "/home/vahid/ESP-IDF/esp32-C/esp32/main/esp32-C.c", "/home/vahid/ESP-IDF/esp32-C/esp32/main/bme680/bme68x.c" ],
+            "include_dirs": [ ".", "bme680" ]
         },
         "mbedtls": {
             "alias": "idf::mbedtls",
@@ -2845,7 +2845,7 @@
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ "." ]
+            "include_dirs": [ ".", "bme680" ]
         }
     },
     "debug_prefix_map_gdbinit": ""

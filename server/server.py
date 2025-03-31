@@ -2,10 +2,10 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-@app.route('/hello', methods=['POST'])
+@app.route('/sensor', methods=['POST'])
 def hello():
     data = request.data.decode('utf-8')
-    print(f"Received data: {data}")
+    print(f"Received sensor data: {data}")
     return 'OK', 200
 
 if __name__ == '__main__':
