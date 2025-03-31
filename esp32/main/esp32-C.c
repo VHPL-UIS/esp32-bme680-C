@@ -132,7 +132,7 @@ void send_temperature_task(void *pvParameters)
         rslt = bme68x_get_data(BME68X_FORCED_MODE, &data, &n_fields, &gas_sensor);
         if (rslt == BME68X_OK && n_fields > 0)
         {
-            float temp = data.temperature / 100.0f;
+            float temp = data.temperature;
             printf("Temperature: %.2f °C\n", temp);
 
             char post_data[64];
@@ -144,7 +144,7 @@ void send_temperature_task(void *pvParameters)
             };
             esp_http_client_handle_t client = esp_http_client_init(&config);
             esp_http_client_set_post_field(client, post_data, strlen(post_data));
-            esp_http_client_set_header(client, "Content-Type", "text/plain");
+            esp_http_client_set_header(client, "Content-Type", "application/json");
             esp_err_t err = esp_http_client_perform(client);
             if (err == ESP_OK)
             {

@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "esp32-C",
-    "project_version":    "23a4430-dirty",
+    "project_version":    "5495a51-dirty",
     "project_path":       "/home/vahid/ESP-IDF/esp32-C/esp32",
     "idf_path":           "/home/vahid/ESP-IDF/esp-idf",
     "build_dir":          "/home/vahid/ESP-IDF/esp32-C/esp32/build",

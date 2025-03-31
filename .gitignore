@@ -36,3 +36,8 @@ Makefile
 /server/*.pyc
 /server/venv/
 /server/.env
+
+# === SQLite ===
+*.db
+*.sqlite
+*.sqlite3
