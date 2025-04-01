@@ -14,6 +14,9 @@ def init_db():
             CREATE TABLE sensor_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 temperature REAL,
+                humidity REAL,
+                pressure REAL,
+                gas_resistance REAL,
                 timestamp TEXT
             )
         ''')
@@ -25,21 +28,28 @@ init_db()
 
 @app.route('/sensor', methods=['POST'])
 def sensor_data():
-    data = request.get_json()
-    if not data or 'temperature' not in data:
-        return jsonify({'error': 'Invalid data'}), 400
-    
-    temperature = data['temperature']
-    timestamp = datetime.now().isoformat()
+    try:
+        data = request.get_json()
+        if not data or 'temperature' not in data:
+            return jsonify({'error': 'Invalid data'}), 400
+        
+        temperature = data['temperature']
+        humidity = data['humidity']
+        pressure = data['pressure']
+        gas_resistance = data['gas_resistance']
+        timestamp = datetime.now().isoformat()
 
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute('INSERT INTO sensor_data (temperature, timestamp) VALUES (?, ?)', (temperature, timestamp))
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute('INSERT INTO sensor_data (temperature, humidity, pressure, gas_resistance, timestamp) VALUES (?, ?, ?, ?, ?)', (temperature, humidity, pressure, gas_resistance, timestamp))
+        conn.commit()
+        conn.close()
 
-    print(f"Inserted data: {temperature} at {timestamp}")
-    return jsonify({'status': 'ok'}), 200
+        print(f"Inserted data: {data} at {timestamp}")
+        return jsonify({'status': 'ok'}), 200
+    except Exception as e:
+        print("Failed to parse JSON:", e)
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 @app.route('/latest', methods=['GET'])
 def latest():
@@ -49,7 +59,7 @@ def latest():
     row = c.fetchone()
     conn.close()
     if row:
-        return jsonify({'row_id': row[0], 'temperature': row[1], 'timestamp': row[2]})
+        return jsonify({'row_id': row[0], 'temperature': row[1], 'humidity': row[2], 'pressure': row[3], 'gas_resistance': row[4], 'timestamp': row[5]})
     else:
         return jsonify({'error': 'No data found'}), 404
 

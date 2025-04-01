@@ -132,10 +132,16 @@ void send_temperature_task(void *pvParameters)
         if (rslt == BME68X_OK && n_fields > 0)
         {
             float temp = data.temperature;
-            printf("Temperature: %.2f °C\n", temp);
+            float humidity = data.humidity;
+            float pressure = data.pressure;
+            int gas_resistance = data.gas_resistance;
+            printf("Temperature: %.2f °C, Humidity: %.2f RH, Pressure: %.2f hPa, Gas Resistance: %d Ohm\n",
+                   temp, humidity, pressure, gas_resistance);
 
-            char post_data[64];
-            snprintf(post_data, sizeof(post_data), "{\"temperature\": %.2f}", temp);
+            char post_data[256];
+            snprintf(post_data, sizeof(post_data),
+                     "{\"temperature\": %.2f, \"humidity\": %.2f, \"pressure\": %.2f, \"gas_resistance\": %d}",
+                     temp, humidity, pressure, gas_resistance);
 
             esp_http_client_config_t config = {
                 .url = SERVER_URL,
