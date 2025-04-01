@@ -1,9 +1,9 @@
 # === ESP-IDF (C Project) ===
-/esp32/*/build/
-/esp32/*/sdkconfig
-/esp32/*/sdkconfig.old
-/esp32/*/.pio/
-/esp32/*/.vscode/
+/esp32/build/
+/esp32/sdkconfig
+/esp32/sdkconfig.old
+/esp32/.pio/
+/esp32/.vscode/
 *.pyc
 *.log
 
