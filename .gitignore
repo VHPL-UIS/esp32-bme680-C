@@ -24,20 +24,20 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 
-# === General ===
+# General
 .DS_Store
 *.swp
 *.swo
 *.bak
 *.tmp
 
-# === Python Server ===
+# Python Server
 /server/__pycache__/
 /server/*.pyc
 /server/venv/
 /server/.env
 
-# === SQLite ===
+# SQLite
 *.db
 *.sqlite
 *.sqlite3
