@@ -1,7 +1,20 @@
 from flask import Flask, request, jsonify
+from influxdb_client import InfluxDBClient, Point, WriteOptions
+from influx_token import INFLUX_TOKEN
 import sqlite3
 from datetime import datetime
 import os
+
+INFLUX_URL = "http://localhost:8086"
+TOKEN = INFLUX_TOKEN
+INFLUX_ORG = "vhpl"
+INFLUX_BUCKET = "sensor"
+
+influx_client = InfluxDBClient(
+    url=INFLUX_URL,
+    token=TOKEN,
+    org=INFLUX_ORG)
+write_api = influx_client.write_api(write_options=WriteOptions(batch_size=1))
 
 app = Flask(__name__)
 DB_FILE = 'sensor_data.db'
@@ -46,6 +59,18 @@ def sensor_data():
         conn.close()
 
         print(f"Inserted data: {data} at {timestamp}")
+
+        # Write to InfluxDB
+        point = (
+            Point("sensor")
+            .field("temperature", temperature)
+            .field("humidity", humidity)
+            .field("pressure", pressure)
+            .field("gas_resistance", gas_resistance)
+        )
+        write_api.write(bucket=INFLUX_BUCKET, record=point)
+        print(f"Data written to InfluxDB: {data}")
+
         return jsonify({'status': 'ok'}), 200
     except Exception as e:
         print("Failed to parse JSON:", e)

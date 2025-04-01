@@ -45,3 +45,6 @@ Makefile
 
 # WIFI credentials
 /esp32/main/wifi_config.h
+
+# influxdb token
+/server/influx_token.py
