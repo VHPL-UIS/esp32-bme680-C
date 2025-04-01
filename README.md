@@ -100,3 +100,11 @@ docker run -d --name grafana --network host grafana/grafana-oss
 ```bash
 idf.py build && idf.py -p /dev/ttyUSB0 flash monitor
 ```
+
+---
+
+## Optional Enhancements
+
+- HTTPS, and OTA firmware update support
+
+---
