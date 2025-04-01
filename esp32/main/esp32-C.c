@@ -8,11 +8,10 @@
 #include "nvs_flash.h"
 #include "esp_netif.h"
 #include "esp_http_client.h"
+#include "wifi_config.h"
 
 #include "bme680/bme68x.h"
 
-#define WIFI_SSID "Privat-Megleren"
-#define WIFI_PASS "Albretsen-666"
 #define SERVER_URL "http://192.168.1.11:5000/sensor"
 
 #define I2C_MASTER_SCL_IO 5

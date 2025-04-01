@@ -41,3 +41,6 @@ Makefile
 *.db
 *.sqlite
 *.sqlite3
+
+# WIFI credentials
+/esp32/main/wifi_config.h
