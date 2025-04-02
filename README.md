@@ -4,6 +4,12 @@
 
 This project is an end-to-end IoT system using an ESP32 microcontroller and a BME680 environmental sensor to capture real-time temperature, humidity, pressure, and gas resistance data. The data is transmitted over Wi-Fi to a Flask-based Python backend server. The server stores the data in both SQLite and InfluxDB databases and visualizes it in real time through Grafana.
 
+<p align="center">
+<img src="images/board.jpg" alt="Board" width="50%" />
+<br>
+  <em>Fig 1: ESP32 + BME680 Wiring</em>
+</p>
+
 ---
 
 ## Components
@@ -43,6 +49,12 @@ This project is an end-to-end IoT system using an ESP32 microcontroller and a BM
 - Reads sensor data from BME680
 - Sends data every 5 seconds to Flask server via HTTP
 
+<p align="center">
+<img src="images/esp32-bme680-wires.png" alt="Wires-fritzing" width="50%" />
+<br>
+  <em>Fig 2: ESP32 + BME680 Wiring Diagram from Fritzing</em>
+</p>
+
 ### 2. Flask Server
 
 - Exposes `/sensor` endpoint to receive JSON
@@ -55,6 +67,12 @@ This project is an end-to-end IoT system using an ESP32 microcontroller and a BM
 - InfluxDB stores time-series data
 - Grafana queries InfluxDB via Flux to create dashboards
 - Panels created for temperature, humidity, pressure, and gas resistance
+
+<p align="center">
+<img src="images/grafana-screenshot.png" alt="Grafana" width="95%" />
+<br>
+  <em>Fig 3: Grafana screenshot</em>
+</p>
 
 ---
 
