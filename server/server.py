@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from influxdb_client import InfluxDBClient, Point, WriteOptions
 from influx_token import INFLUX_TOKEN
 import sqlite3
@@ -87,6 +87,12 @@ def latest():
         return jsonify({'row_id': row[0], 'temperature': row[1], 'humidity': row[2], 'pressure': row[3], 'gas_resistance': row[4], 'timestamp': row[5]})
     else:
         return jsonify({'error': 'No data found'}), 404
+    
+@app.route('/firmware/latest', methods=['GET'])
+def firmware_latest():
+    firmware_dir = os.path.join(os.path.dirname(__file__), 'firmware')
+    filename = 'esp32-C.bin'
+    return send_from_directory(firmware_dir, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
