@@ -4,4 +4,5 @@ set(SOURCES
 )
 
 idf_component_register(SRCS ${SOURCES}
-                    INCLUDE_DIRS "." "bme680")
+                    INCLUDE_DIRS "." "bme680"
+                    EMBED_TXTFILES "cert.pem")

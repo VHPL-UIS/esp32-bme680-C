@@ -48,3 +48,6 @@ Makefile
 
 # influxdb token
 /server/influx_token.py
+
+# Certificates
+/server/certs/

@@ -8,11 +8,17 @@
 #include "nvs_flash.h"
 #include "esp_netif.h"
 #include "esp_http_client.h"
+#include "esp_system.h"
+#include "esp_ota_ops.h"
+#include "esp_https_ota.h"
+#include "esp_sntp.h"
+#include "freertos/event_groups.h"
 #include "wifi_config.h"
 
 #include "bme680/bme68x.h"
 
-#define SERVER_URL "http://192.168.1.11:5000/sensor"
+#define SERVER_URL "https://192.168.1.11:5000/sensor"
+#define OTA_URL "https://192.168.1.11:5000/firmware/latest"
 
 #define I2C_MASTER_SCL_IO 5
 #define I2C_MASTER_SDA_IO 4
@@ -20,6 +26,32 @@
 #define I2C_MASTER_FREQ_HZ 100000
 #define I2C_MASTER_TX_BUF_DISABLE 0
 #define I2C_MASTER_RX_BUF_DISABLE 0
+
+#define WIFI_CONNECTED_BIT BIT0
+static EventGroupHandle_t wifi_event_group;
+esp_event_handler_instance_t instance_any_id;
+esp_event_handler_instance_t instance_got_ip;
+
+void wifi_event_handler(void *arg, esp_event_base_t event_base,
+                        int32_t event_id, void *event_data)
+{
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
+    {
+        esp_wifi_connect();
+    }
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
+        esp_wifi_connect();
+        printf("Retrying to connect to the AP...\n");
+    }
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
+    {
+        printf("Got IP\n");
+        xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
+    }
+}
+
+extern const uint8_t cert_pem_start[] asm("_binary_cert_pem_start");
 
 static struct bme68x_dev gas_sensor;
 
@@ -83,12 +115,17 @@ void user_delay_us(uint32_t period, void *intf_ptr)
 
 void wifi_init_sta(void)
 {
+    wifi_event_group = xEventGroupCreate();
+
     esp_netif_init();
     esp_event_loop_create_default();
     esp_netif_create_default_wifi_sta();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
+
+    esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
+    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL);
 
     wifi_config_t wifi_config = {
         .sta = {
@@ -100,8 +137,22 @@ void wifi_init_sta(void)
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
     esp_wifi_start();
-    esp_wifi_connect();
     printf("Connecting to %s...\n", WIFI_SSID);
+
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group,
+                                           WIFI_CONNECTED_BIT,
+                                           pdFALSE,
+                                           pdFALSE,
+                                           portMAX_DELAY);
+
+    if (bits & WIFI_CONNECTED_BIT)
+    {
+        printf("Connected to %s\n", WIFI_SSID);
+    }
+    else
+    {
+        printf("Failed to connect to %s\n", WIFI_SSID);
+    }
 }
 
 void send_temperature_task(void *pvParameters)
@@ -146,6 +197,8 @@ void send_temperature_task(void *pvParameters)
             esp_http_client_config_t config = {
                 .url = SERVER_URL,
                 .method = HTTP_METHOD_POST,
+                .cert_pem = (const char *)cert_pem_start,
+
             };
             esp_http_client_handle_t client = esp_http_client_init(&config);
             esp_http_client_set_post_field(client, post_data, strlen(post_data));
@@ -168,9 +221,53 @@ void send_temperature_task(void *pvParameters)
     }
 }
 
+void ota_update_task(void *pvParameters)
+{
+    printf("Starting OTA update...\n");
+
+    esp_http_client_config_t config = {
+        .url = OTA_URL,
+        .timeout_ms = 5000,
+        .cert_pem = (const char *)cert_pem_start,
+    };
+
+    esp_https_ota_config_t ota_config = {
+        .http_config = &config,
+    };
+
+    esp_err_t ret = esp_https_ota(&ota_config);
+    if (ret == ESP_OK)
+    {
+        printf("OTA update successful, restarting...\n");
+        esp_restart();
+    }
+    else
+    {
+        printf("OTA update failed: %s\n", esp_err_to_name(ret));
+    }
+
+    vTaskDelete(NULL);
+}
+
 void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
+    printf("=========>OTA TEST - version 1.0.1<===========\n");
+    printf("=========>This is a new version to check OTA<===========\n");
+    printf("==============================\n");
+
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ESP_ERROR_CHECK(nvs_flash_init());
+    }
+
+    wifi_init_sta();
+
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    sntp_setservername(0, "pool.ntp.org");
+    sntp_init();
+
     i2c_master_init();
 
     static uint8_t dev_addr = BME68X_I2C_ADDR_HIGH;
@@ -188,6 +285,16 @@ void app_main(void)
         return;
     }
 
-    wifi_init_sta();
+    esp_err_t err = esp_ota_mark_app_valid_cancel_rollback();
+    if (err != ESP_OK)
+    {
+        printf("Failed to mark app valid for rollback: %s\n", esp_err_to_name(err));
+    }
+    else
+    {
+        printf("App marked valid for rollback\n");
+    }
+
+    xTaskCreate(ota_update_task, "ota_update_task", 8192, NULL, 5, NULL);
     xTaskCreate(send_temperature_task, "send_temperature_task", 8192, NULL, 5, NULL);
 }
