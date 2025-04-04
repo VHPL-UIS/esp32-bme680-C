@@ -125,6 +125,6 @@ idf.py build && idf.py -p /dev/ttyUSB0 flash monitor
 
 - To run on battery, instead of USB connection
 
-- HTTPS, and OTA firmware update support
+- ✅ HTTPS, and OTA firmware update support
 
 ---
