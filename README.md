@@ -17,7 +17,7 @@ This project is an end-to-end IoT system using an ESP32 microcontroller and a BM
 ### Hardware
 
 - **ESP32 Dev Board**
-- **BME680 Sensor** (connected via I2C)
+- **BME680 Sensor** (connected via I<sup>2</sup>C)
 - **Jumper wires**
 - **USB cable for programming**
 
