@@ -51,3 +51,7 @@ Makefile
 
 # Certificates
 /server/certs/
+
+/server/firmware/version.json
+/server/grafana.sh
+/server/influx.config

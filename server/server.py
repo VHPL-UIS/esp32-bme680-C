@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, send_from_directory
+import json
+from flask import Flask, make_response, request, jsonify, send_from_directory
 from influxdb_client import InfluxDBClient, Point, WriteOptions
 from influx_token import INFLUX_TOKEN
 import sqlite3
@@ -91,8 +92,22 @@ def latest():
 @app.route('/firmware/latest', methods=['GET'])
 def firmware_latest():
     firmware_dir = os.path.join(os.path.dirname(__file__), 'firmware')
-    filename = 'esp32-C.bin'
+    filename = 'firmware.bin'
     return send_from_directory(firmware_dir, filename, as_attachment=True)
+
+@app.route('/firmware/version', methods=['GET'])
+def firmware_version():
+    firmware_dir = os.path.join(os.path.dirname(__file__), 'firmware')
+    version_file = os.path.join(firmware_dir, 'version.json')
+    if os.path.exists(version_file):
+        with open(version_file, 'r') as f:
+            version_data = json.load(f)
+        resp = make_response(jsonify(version_data))
+        resp.headers['Content-Encoding'] = 'identity'
+        resp.headers['Transfer-Encoding'] = 'identity'
+        return resp
+    else:
+        return jsonify({'error': 'Version file not found'}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, ssl_context=('certs/cert.pem', 'certs/key.pem'))
