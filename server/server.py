@@ -61,7 +61,6 @@ def sensor_data():
 
         print(f"Inserted data: {data} at {timestamp}")
 
-        # Write to InfluxDB
         point = (
             Point("sensor")
             .field("temperature", temperature)

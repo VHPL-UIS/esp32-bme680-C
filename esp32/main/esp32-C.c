@@ -22,9 +22,9 @@
 
 #include "bme680/bme68x.h"
 
-#define SERVER_URL "https://192.168.1.11:5000/sensor"
-#define VERSION_URL "https://192.168.1.11:5000/firmware/version"
-#define OTA_URL "https://192.168.1.11:5000/firmware/latest"
+#define SERVER_URL "https://10.184.34.192:5000/sensor"
+#define VERSION_URL "https://10.184.34.192:5000/firmware/version"
+#define OTA_URL "https://10.184.34.192:5000/firmware/latest"
 #define FIRMWARE_VERSION "1.2.0"
 
 #define DEEP_SLEEP_DURATION_SEC 300 // 5 minutes
@@ -372,14 +372,11 @@ void enter_deep_sleep(void)
 {
     printf("Entering deep sleep for %d seconds...\n", DEEP_SLEEP_DURATION_SEC);
 
-    // Configure wake up timer
     esp_sleep_enable_timer_wakeup(DEEP_SLEEP_DURATION_SEC * 1000000ULL);
 
-    // Isolate GPIO pins to reduce power consumption
-    rtc_gpio_isolate(GPIO_NUM_12);
-    rtc_gpio_isolate(GPIO_NUM_15);
+    // rtc_gpio_isolate(GPIO_NUM_12);
+    // rtc_gpio_isolate(GPIO_NUM_15);
 
-    // Enter deep sleep
     esp_deep_sleep_start();
 }
 
@@ -430,7 +427,6 @@ uint32_t get_wake_count(void)
 
 void app_main(void)
 {
-    // Check wake up reason
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
 
     switch (wakeup_reason)
@@ -446,7 +442,6 @@ void app_main(void)
 
     printf("Firmware v%s starting...\n", FIRMWARE_VERSION);
 
-    // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
@@ -454,11 +449,9 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_init());
     }
 
-    // Get wake count for OTA timing
     uint32_t wake_count = get_wake_count();
     printf("Wake count: %lu\n", wake_count);
 
-    // Initialize I2C and BME680
     i2c_master_init();
 
     static uint8_t dev_addr = BME68X_I2C_ADDR_HIGH;
@@ -477,7 +470,6 @@ void app_main(void)
         return;
     }
 
-    // Read sensor data
     float temp, humidity, pressure;
     int gas_resistance;
 
@@ -491,7 +483,6 @@ void app_main(void)
     printf("T: %.2f°C, H: %.2f%%, P: %.2fhPa, G: %dΩ\n",
            temp, humidity, pressure, gas_resistance);
 
-    // Connect to WiFi
     if (!wifi_init_and_connect())
     {
         printf("WiFi connection failed, going to sleep\n");
@@ -500,7 +491,6 @@ void app_main(void)
         return;
     }
 
-    // Send sensor data
     bool data_sent = send_sensor_data(temp, humidity, pressure, gas_resistance);
     if (data_sent)
     {
@@ -511,14 +501,12 @@ void app_main(void)
         printf("Failed to send data\n");
     }
 
-    // Check for OTA update periodically
     if (wake_count % OTA_CHECK_INTERVAL == 0)
     {
         printf("Checking for OTA update...\n");
         if (is_new_firmware_available())
         {
             perform_ota_update();
-            // If we reach here, OTA failed
         }
         else
         {
@@ -526,10 +514,8 @@ void app_main(void)
         }
     }
 
-    // Cleanup and go to sleep
     wifi_cleanup();
     i2c_driver_delete(I2C_MASTER_NUM);
 
-    // Enter deep sleep
     enter_deep_sleep();
 }
